@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class 6.2 Learning Board</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #0d1117; color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .card-bg { background-color: #161b22; border: 1px solid #21262d; }
+    .inner-card { background-color: #0d1117; border: 1px solid #21262d; }
+    .modal-backdrop { background-color: rgba(0,0,0,0.85); backdrop-filter: blur(8px); }
+  </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+
+  <div class="max-w-6xl mx-auto space-y-6">
+
+    <!-- Header Banner -->
+    <div class="card-bg rounded-2xl p-6 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="bg-amber-500/10 text-amber-400 p-3.5 rounded-xl text-3xl">
+          <i class="fa-solid fa-compass-drafting"></i>
+        </div>
+        <div>
+          <div class="flex flex-wrap items-center gap-3">
+            <h1 class="text-2xl font-bold text-white tracking-tight">中文学习自主选择板 <span class="text-gray-400 font-normal">/ Learning Board</span></h1>
+            <span class="text-xs font-semibold px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full">
+              班级: 6.2 / Class 6.2
+            </span>
+            <span class="text-xs font-semibold px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> 实时同步中 / Live Synced
+            </span>
+          </div>
+          <p class="text-xs text-gray-400 mt-1">Class 6.2 Student Choice Board</p>
+        </div>
+      </div>
+
+      <div class="px-4 py-2 bg-amber-500/10 border border-amber-500/30 text-amber-400 rounded-xl font-bold text-xs flex items-center gap-2 shadow-sm">
+        <i class="fa-solid fa-user-graduate"></i> 学生个人专属版 / Student View
+      </div>
+    </div>
+
+    <!-- Student Name Login / Lock Header -->
+    <div class="card-bg rounded-2xl p-6 space-y-6 shadow-xl">
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-gray-800">
+        <div>
+          <div class="text-xs text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1 mb-1">
+            <i class="fa-solid fa-shield-halved"></i> 个人学习打卡安全保障 / Secured Learning Board
+          </div>
+          <h2 id="studentTitle" class="text-2xl font-black text-white">当前学习者: <span class="text-amber-400" id="currentStudentNameDisplay">未登录</span></h2>
+          <p class="text-xs text-gray-400 mt-1">请输入你的姓名进入独立打卡板，无法修改其他同学的记录。</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Name Login Box -->
+          <div id="loginBox" class="flex items-center gap-2 bg-gray-900 border border-amber-500/40 p-1.5 rounded-xl">
+            <i class="fa-solid fa-user text-amber-400 text-xs ml-2"></i>
+            <input type="text" id="studentNameInput" placeholder="请输入你的姓名..." class="bg-transparent text-white text-xs px-2 py-1 focus:outline-none w-36">
+            <button onclick="loginStudent()" class="px-3 py-1.5 bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs rounded-lg transition">
+              锁定并进入
+            </button>
+          </div>
+
+          <!-- Lock Status -->
+          <div id="lockedBadge" class="hidden flex items-center gap-2 bg-emerald-950/60 border border-emerald-500/40 px-3 py-2 rounded-xl text-xs text-emerald-400 font-bold">
+            <i class="fa-solid fa-lock"></i> 已锁定身份: <span id="lockedStudentName"></span>
+            <button onclick="unlockStudent()" class="text-gray-400 hover:text-white ml-2 underline text-[11px]">切换姓名</button>
+          </div>
+
+          <button onclick="openModal()" class="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-gray-950 font-bold text-xs rounded-xl shadow-lg transition flex items-center gap-2">
+            <i class="fa-solid fa-award"></i> 展示成就卡 / Present Certificate
+          </button>
+        </div>
+      </div>
+
+      <!-- Unlocked Badges Row -->
+      <div class="space-y-3">
+        <div class="flex items-center justify-between">
+          <span class="text-xs font-bold text-gray-300 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-star text-amber-400"></i> 我已解锁的成就勋章 / MY UNLOCKED BADGES
+          </span>
+          <span id="badgeCountText" class="text-xs font-bold text-amber-400">已解锁 0 / 8 个勋章</span>
+        </div>
+        
+        <div id="badgeContainer" class="flex flex-wrap items-center gap-3 min-h-[48px] p-3 inner-card rounded-xl">
+          <span class="text-xs text-gray-500 italic">在上方输入姓名并勾选任务即可解锁大勋章！</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7 Tasks Choice Grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+      <!-- Task 1 -->
+      <div class="card-bg rounded-2xl p-5 space-y-4 shadow-lg">
+        <div class="flex items-center gap-3 border-b border-gray-800 pb-3">
+          <div class="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl text-lg"><i class="fa-solid fa-spell-check"></i></div>
+          <div>
+            <h3 class="font-bold text-white text-sm">任务 1: 词汇与造句</h3>
+            <p class="text-xs text-gray-400">Task 1: Voc Writing & Sentence Making</p>
+            <p class="text-[11px] text-amber-400 mt-0.5">可获勋章: ✍️ 词语达人</p>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t1_1')" id="st_t1_1" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">Part 1: 词汇与造句 第一部分</div>
+              <div class="text-[10px] text-gray-400">Voc & Sentences Part 1</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t1_2')" id="st_t1_2" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">Part 2: 词汇与造句 第二部分</div>
+              <div class="text-[10px] text-gray-400">Voc & Sentences Part 2</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Task 2 -->
+      <div class="card-bg rounded-2xl p-5 space-y-4 shadow-lg">
+        <div class="flex items-center gap-3 border-b border-gray-800 pb-3">
+          <div class="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl text-lg"><i class="fa-solid fa-lightbulb"></i></div>
+          <div>
+            <h3 class="font-bold text-white text-sm">任务 2: 探究方案设计</h3>
+            <p class="text-xs text-gray-400">Task 2: Project Solutions</p>
+            <p class="text-[11px] text-amber-400 mt-0.5">可获勋章: 💡 方案专家</p>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t2_1')" id="st_t2_1" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">Solution 1: 如何到达山顶</div>
+              <div class="text-[10px] text-gray-400">How to get to the mountain summit</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t2_2')" id="st_t2_2" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">Solution 2: 如何到达山洞</div>
+              <div class="text-[10px] text-gray-400">How to get to the cave</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t2_3')" id="st_t2_3" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">Solution 3: 如何到达海岛</div>
+              <div class="text-[10px] text-gray-400">How to get to the island</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Task 3 -->
+      <div class="card-bg rounded-2xl p-5 space-y-4 shadow-lg">
+        <div class="flex items-center gap-3 border-b border-gray-800 pb-3">
+          <div class="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl text-lg"><i class="fa-solid fa-book-bookmark"></i></div>
+          <div>
+            <h3 class="font-bold text-white text-sm">任务 3: 抄写与整理</h3>
+            <p class="text-xs text-gray-400">Task 3: Text Copying to Big Book</p>
+            <p class="text-[11px] text-amber-400 mt-0.5">可获勋章: 📚 笔耕不辍</p>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t3_1')" id="st_t3_1" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">Part 1: 抄写课文《求救》</div>
+              <div class="text-[10px] text-gray-400">Copy reading text: "SOS / 求救"</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t3_2')" id="st_t3_2" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">Part 2: 抄写 3 个方案至黄本</div>
+              <div class="text-[10px] text-gray-400">Copy all 3 solutions to Yellow Book</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Task 4 -->
+      <div class="card-bg rounded-2xl p-5 space-y-4 shadow-lg">
+        <div class="flex items-center gap-3 border-b border-gray-800 pb-3">
+          <div class="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl text-lg"><i class="fa-solid fa-laptop-code"></i></div>
+          <div>
+            <h3 class="font-bold text-white text-sm">任务 4: 线上阅读</h3>
+            <p class="text-xs text-gray-400">Task 4: Online Reading (1 - 5)</p>
+            <p class="text-[11px] text-amber-400 mt-0.5">可获勋章: 📖 线上阅读星</p>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t4_1')" id="st_t4_1" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <span class="text-xs text-gray-200 font-medium">阅读篇章 1 / Reading 1</span>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t4_2')" id="st_t4_2" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <span class="text-xs text-gray-200 font-medium">阅读篇章 2 / Reading 2</span>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t4_3')" id="st_t4_3" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <span class="text-xs text-gray-200 font-medium">阅读篇章 3 / Reading 3</span>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t4_4')" id="st_t4_4" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <span class="text-xs text-gray-200 font-medium">阅读篇章 4 / Reading 4</span>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t4_5')" id="st_t4_5" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <span class="text-xs text-gray-200 font-medium">阅读篇章 5 / Reading 5</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Task 5 -->
+      <div class="card-bg rounded-2xl p-5 space-y-4 shadow-lg">
+        <div class="flex items-center gap-3 border-b border-gray-800 pb-3">
+          <div class="p-2.5 bg-amber-500/10 text-amber-400 rounded-xl text-lg"><i class="fa-solid fa-microphone"></i></div>
+          <div>
+            <h3 class="font-bold text-white text-sm">任务 5: Toddle 朗读录音提交</h3>
+            <p class="text-xs text-gray-400">Task 5: Voice Recording to Toddle</p>
+            <p class="text-[11px] text-amber-400 mt-0.5">可获勋章: 🎙️ 朗诵能手</p>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t5_1')" id="st_t5_1" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">录音 1: 课文《求救》朗读上传</div>
+              <div class="text-[10px] text-gray-400">Voice recording of reading text to Toddle</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t5_2')" id="st_t5_2" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">录音 2: 3 个解决方案朗读上传</div>
+              <div class="text-[10px] text-gray-400">Voice recording of solutions to Toddle</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Task 6 (AI Writing Challenge) -->
+      <div class="card-bg rounded-2xl p-5 space-y-4 shadow-lg border border-amber-500/30">
+        <div class="flex items-center gap-3 border-b border-gray-800 pb-3">
+          <div class="p-2.5 bg-amber-500 text-gray-950 rounded-xl text-lg font-bold"><i class="fa-solid fa-robot"></i></div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-amber-400 text-sm">任务 6: AI 创意写作挑战</h3>
+              <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold">AI Bot</span>
+            </div>
+            <p class="text-xs text-gray-400">Task 6: AI Creative Writing Challenge</p>
+            <p class="text-[11px] text-amber-400 mt-0.5">可获勋章: 🤖 智能创作者</p>
+          </div>
+        </div>
+
+        <!-- AI Bot Button -->
+        <a href="https://gemini.google.com/gem/1h15vGdWNGs6MKNMKSKa2QU3GDXRJ1iAR?usp=sharing" target="_blank" class="flex items-center justify-between p-3 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 hover:border-amber-400 rounded-xl transition group">
+          <div class="flex items-center gap-2.5">
+            <i class="fa-solid fa-comments text-amber-400 text-base"></i>
+            <div>
+              <div class="text-xs font-bold text-white group-hover:text-amber-300">点击开启 6.2 班写作 AI 小助手</div>
+              <div class="text-[10px] text-gray-400">与 AI 助手互动，完成创意中文段落</div>
+            </div>
+          </div>
+          <i class="fa-solid fa-arrow-up-right-from-square text-xs text-amber-400"></i>
+        </a>
+
+        <p class="text-[11px] text-gray-300 font-semibold">选择任一题目，借助 AI 完成短文后勾选：</p>
+
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t6_1')" id="st_t6_1" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">题目 1: 《我的荒岛求生必备清单》</div>
+              <div class="text-[10px] text-gray-400">Island Survival Essentials</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t6_2')" id="st_t6_2" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">题目 2: 《设计一辆未来飞天救生车》</div>
+              <div class="text-[10px] text-gray-400">Future Rescue Vehicle Design</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t6_3')" id="st_t6_3" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">题目 3: 《山洞里的神秘信号》</div>
+              <div class="text-[10px] text-gray-400">Mysterious Cave Signal</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t6_4')" id="st_t6_4" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">题目 4: 《给救援队的一封紧急求救信》</div>
+              <div class="text-[10px] text-gray-400">Emergency Letter to Rescue Team</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <!-- Task 7 (Extension Project) -->
+      <div class="card-bg rounded-2xl p-5 space-y-4 shadow-lg border border-amber-500/30">
+        <div class="flex items-center gap-3 border-b border-gray-800 pb-3">
+          <div class="p-2.5 bg-amber-500 text-gray-950 rounded-xl text-lg font-bold"><i class="fa-solid fa-rocket"></i></div>
+          <div>
+            <div class="flex items-center gap-2">
+              <h3 class="font-bold text-amber-400 text-sm">任务 7: 拓展设计探究</h3>
+              <span class="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 px-2 py-0.5 rounded-full font-bold">Extension</span>
+            </div>
+            <p class="text-xs text-gray-400">Task 7: Design a New Transportation Means</p>
+            <p class="text-[11px] text-amber-400 mt-0.5">可获勋章: 🛸 创新发明家</p>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t7_1')" id="st_t7_1" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">Part 1: 在 MC (Minecraft) 中设计新型交通工具</div>
+              <div class="text-[10px] text-gray-400">Design a new transportation means with MC</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t7_2')" id="st_t7_2" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">Part 2: 截屏并上传作品至 Toddle</div>
+              <div class="text-[10px] text-gray-400">Upload screenshot of transportation to Toddle</div>
+            </div>
+          </label>
+          <label class="flex items-center gap-3 p-2.5 inner-card hover:border-gray-700 rounded-xl cursor-pointer transition">
+            <input type="checkbox" onchange="toggleTask('t7_3')" id="st_t7_3" class="w-4 h-4 text-amber-500 rounded bg-gray-900 border-gray-700 cursor-pointer">
+            <div>
+              <div class="text-xs text-gray-200 font-medium">Part 3: 用中文撰写一段设计说明短文</div>
+              <div class="text-[10px] text-gray-400">Write a paragraph about it in Mandarin</div>
+            </div>
+          </label>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Parent Certificate Modal -->
+  <div id="certModal" class="fixed inset-0 modal-backdrop hidden flex items-center justify-center p-4 z-50">
+    <div class="card-bg border-2 border-amber-500/50 rounded-3xl p-6 max-w-md w-full text-center relative shadow-2xl space-y-5">
+      <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-xl p-2">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+      <div class="space-y-1">
+        <div class="inline-block px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-bold rounded-full border border-amber-500/30">
+          🎓 学习成果展示卡 / Presentation Card
+        </div>
+        <h3 id="modalTitle" class="text-2xl font-black text-white">未登录</h3>
+        <p class="text-xs text-gray-400">Class 6.2 中文探究学习板 / Learning Board</p>
+      </div>
+
+      <div id="modalBadgesContainer" class="grid grid-cols-2 gap-3 py-2"></div>
+
+      <div class="p-3 bg-gray-900 rounded-xl border border-gray-800 text-xs text-amber-300">
+        💡 提示：你可以截图发送给爸爸妈妈分享你的学习喜悦！
+      </div>
+
+      <button onclick="closeModal()" class="w-full py-3 bg-amber-500 hover:bg-amber-400 text-gray-950 font-black rounded-xl transition text-sm">
+        返回我的学习板 / Back to Board
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const BADGES = {
+      voc_master: { name: '词语达人', icon: '✍️', desc: '完成词汇与造句练习', bg: 'from-blue-600 to-indigo-800' },
+      sol_expert: { name: '方案专家', icon: '💡', desc: '完成三大探究方案设计', bg: 'from-emerald-600 to-teal-800' },
+      book_master: { name: '笔耕不辍', icon: '📚', desc: '完成大黄本抄写整理', bg: 'from-purple-600 to-pink-800' },
+      online_reader: { name: '线上阅读星', icon: '📖', desc: '完成至少3篇线上阅读', bg: 'from-amber-500 to-orange-700' },
+      voice_master: { name: '朗诵能手', icon: '🎙️', desc: '完成 Toddle 朗读录音上传', bg: 'from-teal-600 to-cyan-800' },
+      ai_creator: { name: '智能创作者', icon: '🤖', desc: '借助 AI 完成创意中文短文', bg: 'from-purple-600 to-indigo-700' },
+      inventor: { name: '创新发明家', icon: '🛸', desc: '完成 MC 新型交通工具拓展探究', bg: 'from-orange-600 to-amber-700' },
+      class_champion: { name: '6.2 全能大满贯', icon: '🌟', desc: '完成全部 7 大学习任务领域', bg: 'from-yellow-400 to-amber-600' }
+    };
+
+    const broadcast = new BroadcastChannel('class62_sync_channel');
+    let activeStudent = localStorage.getItem('unit3_class62_current_student') || '';
+
+    function loginStudent() {
+      const input = document.getElementById('studentNameInput').value.trim();
+      if (!input) {
+        alert('请输入你的姓名！');
+        return;
+      }
+      activeStudent = input;
+      localStorage.setItem('unit3_class62_current_student', activeStudent);
+      render();
+    }
+
+    function unlockStudent() {
+      if (confirm('确定要切换姓名吗？')) {
+        activeStudent = '';
+        localStorage.removeItem('unit3_class62_current_student');
+        render();
+      }
+    }
+
+    function getStore() {
+      return JSON.parse(localStorage.getItem('class62_unit_data') || '{}');
+    }
+
+    function saveStore(data) {
+      localStorage.setItem('class62_unit_data', JSON.stringify(data));
+      broadcast.postMessage({ type: 'update' });
+      render();
+    }
+
+    function calculateBadges(tasks) {
+      let earned = [];
+      if (tasks.includes('t1_1') && tasks.includes('t1_2')) earned.push(BADGES.voc_master);
+      if (tasks.includes('t2_1') && tasks.includes('t2_2') && tasks.includes('t2_3')) earned.push(BADGES.sol_expert);
+      if (tasks.includes('t3_1') && tasks.includes('t3_2')) earned.push(BADGES.book_master);
+      
+      const readingCount = tasks.filter(t => t.startsWith('t4_')).length;
+      if (readingCount >= 3) earned.push(BADGES.online_reader);
+
+      if (tasks.includes('t5_1') && tasks.includes('t5_2')) earned.push(BADGES.voice_master);
+      if (tasks.some(t => t.startsWith('t6_'))) earned.push(BADGES.ai_creator);
+      if (tasks.includes('t7_1') && tasks.includes('t7_2') && tasks.includes('t7_3')) earned.push(BADGES.inventor);
+
+      if (earned.length >= 7) {
+        earned.push(BADGES.class_champion);
+      }
+      return earned;
+    }
+
+    function toggleTask(taskId) {
+      if (!activeStudent) {
+        alert('请先在页面上方输入你的姓名并锁定！');
+        render();
+        return;
+      }
+      const db = getStore();
+      let tasks = db[activeStudent] || [];
+      if (tasks.includes(taskId)) {
+        tasks = tasks.filter(t => t !== taskId);
+      } else {
+        tasks.push(taskId);
+      }
+      db[activeStudent] = tasks;
+      saveStore(db);
+    }
+
+    function render() {
+      const loginBox = document.getElementById('loginBox');
+      const lockedBadge = document.getElementById('lockedBadge');
+
+      if (activeStudent) {
+        loginBox.classList.add('hidden');
+        lockedBadge.classList.remove('hidden');
+        document.getElementById('lockedStudentName').innerText = activeStudent;
+        document.getElementById('currentStudentNameDisplay').innerText = `${activeStudent} (6.2)`;
+      } else {
+        loginBox.classList.remove('hidden');
+        lockedBadge.classList.add('hidden');
+        document.getElementById('currentStudentNameDisplay').innerText = '未登录 (请在上方输入姓名)';
+      }
+
+      const store = getStore();
+      const tasks = activeStudent ? (store[activeStudent] || []) : [];
+
+      document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        const key = cb.id.replace('st_', '');
+        cb.checked = tasks.includes(key);
+      });
+
+      const badges = calculateBadges(tasks);
+      const container = document.getElementById('badgeContainer');
+      document.getElementById('badgeCountText').innerText = `已解锁 ${badges.length} / 8 个勋章`;
+      container.innerHTML = '';
+
+      if (badges.length === 0) {
+        container.innerHTML = `<span class="text-xs text-gray-500 italic">在上方输入姓名并勾选任务即可解锁大勋章！</span>`;
+      } else {
+        badges.forEach(b => {
+          container.innerHTML += `
+            <div onclick="openModal()" class="px-3 py-1.5 bg-gradient-to-r ${b.bg} rounded-xl border border-white/20 text-white flex items-center gap-2 cursor-pointer hover:scale-105 transition shadow-lg">
+              <span class="text-base">${b.icon}</span>
+              <span class="text-xs font-bold">${b.name}</span>
+            </div>
+          `;
+        });
+      }
+    }
+
+    function openModal() {
+      if (!activeStudent) {
+        alert('请先输入你的姓名并锁定！');
+        return;
+      }
+      const tasks = (getStore())[activeStudent] || [];
+      const badges = calculateBadges(tasks);
+      const c = document.getElementById('modalBadgesContainer');
+      document.getElementById('modalTitle').innerText = `${activeStudent} (6.2)`;
+      c.innerHTML = '';
+
+      if (badges.length === 0) {
+        c.innerHTML = `<div class="col-span-2 py-6 text-gray-400 text-xs">还没有获得勋章，快去勾选完成的任务吧！</div>`;
+      } else {
+        badges.forEach(b => {
+          c.innerHTML += `
+            <div class="bg-gradient-to-br ${b.bg} p-3 rounded-2xl border border-white/20 text-white flex flex-col items-center justify-center space-y-1 shadow-lg">
+              <div class="text-3xl">${b.icon}</div>
+              <div class="font-black text-xs">${b.name}</div>
+              <div class="text-[10px] text-gray-200 opacity-90">${b.desc}</div>
+            </div>
+          `;
+        });
+      }
+      document.getElementById('certModal').classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('certModal').classList.add('hidden');
+    }
+
+    broadcast.onmessage = (e) => { if (e.data.type === 'update') render(); };
+    window.addEventListener('storage', () => render());
+
+    render();
+  </script>
+</body>
+</html>

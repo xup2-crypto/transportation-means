@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Class 6.2 - Teacher Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #0d1117; color: #f3f4f6; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    .card-bg { background-color: #161b22; border: 1px solid #21262d; }
+  </style>
+</head>
+<body class="p-4 md:p-8 min-h-screen">
+
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Top Unit Header -->
+    <div class="card-bg rounded-2xl p-6 shadow-2xl flex flex-wrap items-center justify-between gap-4">
+      <div class="flex items-center gap-4">
+        <div class="bg-amber-500/10 text-amber-400 p-3.5 rounded-xl text-3xl">
+          <i class="fa-solid fa-compass-drafting"></i>
+        </div>
+        <div>
+          <div class="flex flex-wrap items-center gap-3">
+            <h1 class="text-2xl font-bold text-white tracking-tight">6.2 班中文探究学习看板 <span class="text-gray-400 font-normal">/ Class 6.2 Teacher View</span></h1>
+            <span class="text-xs font-semibold px-2.5 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/30 rounded-full">
+              班级: 6.2 / Class 6.2
+            </span>
+            <span class="text-xs font-semibold px-2.5 py-1 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-full flex items-center gap-1.5">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> 实时同步中 / Live Synced
+            </span>
+          </div>
+          <p class="text-xs text-gray-400 mt-1">教师实时监控矩阵 (共 21 项任务进度与勋章)</p>
+        </div>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center gap-2">
+        <button onclick="generateRandomData()" class="px-3.5 py-2 bg-gray-800 hover:bg-gray-700 text-amber-400 text-xs font-bold rounded-xl border border-gray-700 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> 生成测试数据
+        </button>
+        <button onclick="clearAllData()" class="px-3.5 py-2 bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 text-xs font-bold rounded-xl border border-rose-800/50 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-trash"></i> 重置 6.2 班数据
+        </button>
+      </div>
+    </div>
+
+    <!-- TEACHER DASHBOARD MATRIX -->
+    <div class="space-y-6">
+      <div class="card-bg rounded-2xl p-6 shadow-xl flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-users-rectangle text-amber-400"></i> Class 6.2 学生实时进阶矩阵
+          </h2>
+          <p class="text-xs text-gray-400 mt-0.5">监控 student.html 端学生自主打卡与勋章记录</p>
+        </div>
+        <span id="totalStudentsText" class="text-xs text-amber-400 font-bold bg-amber-500/10 px-3 py-1.5 rounded-xl border border-amber-500/30">
+          已登记学生: 0 人
+        </span>
+      </div>
+
+      <!-- Students Matrix Grid -->
+      <div id="teacherMatrixGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+    </div>
+
+  </div>
+
+  <script>
+    const TOTAL_TASKS = 21; // Total sub-tasks for Class 6.2
+    const BADGES = {
+      voc_master: { name: '词语达人', icon: '✍️', bg: 'from-blue-600 to-indigo-800' },
+      sol_expert: { name: '方案专家', icon: '💡', bg: 'from-emerald-600 to-teal-800' },
+      book_master: { name: '笔耕不辍', icon: '📚', bg: 'from-purple-600 to-pink-800' },
+      online_reader: { name: '线上阅读星', icon: '📖', bg: 'from-amber-500 to-orange-700' },
+      voice_master: { name: '朗诵能手', icon: '🎙️', bg: 'from-teal-600 to-cyan-800' },
+      ai_creator: { name: '智能创作者', icon: '🤖', bg: 'from-purple-600 to-indigo-700' },
+      inventor: { name: '创新发明家', icon: '🛸', bg: 'from-orange-600 to-amber-700' },
+      class_champion: { name: '6.2 全能大满贯', icon: '🌟', bg: 'from-yellow-400 to-amber-600' }
+    };
+
+    const broadcast = new BroadcastChannel('class62_sync_channel');
+
+    function getStore() {
+      return JSON.parse(localStorage.getItem('class62_unit_data') || '{}');
+    }
+
+    function saveStore(data) {
+      localStorage.setItem('class62_unit_data', JSON.stringify(data));
+      broadcast.postMessage({ type: 'update' });
+      render();
+    }
+
+    function calculateBadges(tasks) {
+      let earned = [];
+      if (tasks.includes('t1_1') && tasks.includes('t1_2')) earned.push(BADGES.voc_master);
+      if (tasks.includes('t2_1') && tasks.includes('t2_2') && tasks.includes('t2_3')) earned.push(BADGES.sol_expert);
+      if (tasks.includes('t3_1') && tasks.includes('t3_2')) earned.push(BADGES.book_master);
+      
+      const readingCount = tasks.filter(t => t.startsWith('t4_')).length;
+      if (readingCount >= 3) earned.push(BADGES.online_reader);
+
+      if (tasks.includes('t5_1') && tasks.includes('t5_2')) earned.push(BADGES.voice_master);
+      if (tasks.some(t => t.startsWith('t6_'))) earned.push(BADGES.ai_creator);
+      if (tasks.includes('t7_1') && tasks.includes('t7_2') && tasks.includes('t7_3')) earned.push(BADGES.inventor);
+
+      if (earned.length >= 7) {
+        earned.push(BADGES.class_champion);
+      }
+      return earned;
+    }
+
+    function render() {
+      const store = getStore();
+      const studentNames = Object.keys(store);
+      const grid = document.getElementById('teacherMatrixGrid');
+      document.getElementById('totalStudentsText').innerText = `已登记学生: ${studentNames.length} 人`;
+      grid.innerHTML = '';
+
+      if (studentNames.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-3 card-bg p-8 text-center text-gray-500 rounded-2xl text-xs">
+            暂无 6.2 班学生打卡记录。学生在 student.html 输入姓名打卡后将在此实时显示！
+          </div>
+        `;
+        return;
+      }
+
+      studentNames.forEach((name, idx) => {
+        const tasks = store[name] || [];
+        const count = tasks.length;
+        const pct = Math.min(100, Math.round((count / TOTAL_TASKS) * 100));
+        const badges = calculateBadges(tasks);
+
+        let badgeHtml = '';
+        if (badges.length === 0) {
+          badgeHtml = `<span class="text-[10px] text-gray-500 italic">尚无勋章</span>`;
+        } else {
+          badges.forEach(b => {
+            badgeHtml += `<span class="px-2 py-0.5 bg-gradient-to-r ${b.bg} text-white rounded-md text-[10px] font-bold shadow-sm">${b.icon} ${b.name}</span> `;
+          });
+        }
+
+        grid.innerHTML += `
+          <div class="card-bg rounded-2xl p-4 space-y-3 shadow-md border hover:border-gray-700 transition">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-full bg-amber-500/10 text-amber-400 flex items-center justify-center font-bold text-xs border border-amber-500/30">
+                  ${idx + 1}
+                </div>
+                <div>
+                  <h4 class="font-bold text-white text-sm">${name}</h4>
+                  <p class="text-[10px] text-gray-400">已完成 ${count} / ${TOTAL_TASKS} 项 (${pct}%)</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="w-full bg-gray-900 rounded-full h-2 border border-gray-800 overflow-hidden">
+              <div class="bg-amber-500 h-full rounded-full transition-all duration-300" style="width: ${pct}%"></div>
+            </div>
+
+            <div class="pt-1 flex flex-wrap gap-1">
+              ${badgeHtml}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function generateRandomData() {
+      const demo = {};
+      const pool = ['t1_1', 't1_2', 't2_1', 't2_2', 't2_3', 't3_1', 't3_2', 't4_1', 't4_2', 't4_3', 't5_1', 't5_2', 't6_1', 't6_2', 't7_1', 't7_2', 't7_3'];
+      for (let i = 1; i <= 25; i++) {
+        const num = i < 10 ? `0${i}` : `${i}`;
+        const name = `学生 ${num}`;
+        const count = Math.floor(Math.random() * pool.length) + 1;
+        demo[name] = pool.slice(0, count);
+      }
+      saveStore(demo);
+    }
+
+    function clearAllData() {
+      if (confirm("确定要重置 6.2 班全班学生的打卡数据吗？")) {
+        localStorage.removeItem('class62_unit_data');
+        saveStore({});
+      }
+    }
+
+    broadcast.onmessage = (e) => { if (e.data.type === 'update') render(); };
+    window.addEventListener('storage', () => render());
+
+    render();
+  </script>
+</body>
+</html>
